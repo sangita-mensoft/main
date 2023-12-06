@@ -18,22 +18,123 @@
         "australiaeast",
         "australiasoutheast",
         "brazilsouth",
+        "brazilsoutheast",
+        "canadacentral",
+        "canadaeast",
+        "centralindia",
         "centralus",
         "eastasia",
         "eastus",
         "eastus2",
+        "francecentral",
+        "francesouth",
+        "germanynorth",
+        "germanywestcentral",
         "japaneast",
         "japanwest",
+        "koreacentral",
+        "koreasouth",
         "northcentralus",
         "northeurope",
+        "norwayeast",
+        "norwaywest",
+        "polandcentral",
+        "qatarcentral",
+        "southafricanorth",
+        "southafricawest",
         "southcentralus",
         "southeastasia",
+        "southindia",
+        "swedencentral",
+        "switzerlandnorth",
+        "switzerlandwest",
+        "uaecentral",
+        "uaenorth",
+        "uksouth",
+        "ukwest",
+        "westcentralus",
         "westeurope",
-        "westus"
+        "westindia",
+        "westus",
+        "westus2",
+        "westus3"
       ],
       "metadata": {
         "description": "Location of the Logic App."
       }
+    },
+    "servicebus_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "servicebus"
+    },
+    "servicebus_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "ServiceBus"
+    },
+    "servicebus_1_connectionString": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Azure Service Bus Connection String"
+      }
+    },
+    "sendgrid_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "sendgrid-2"
+    },
+    "sendgrid_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "SendGridConnection"
+    },
+    "sendgrid_1_apiKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "SendGrid Api Key"
+      }
+    },
+    "azureblob_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "azureblob-1"
+    },
+    "azureblob_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "blob_connection"
+    },
+    "azureblob_1_accountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name or blob endpoint of the Azure Storage account the connector should use."
+      },
+      "defaultValue": "devcoreabsnxl"
+    },
+    "azureblob_1_accessKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Specify a valid primary/secondary Azure Storage account access key."
+      }
+    },
+    "azureblob_1_authType": {
+      "type": "string",
+      "metadata": {
+        "description": "Authentication type to connect to your database"
+      },
+      "defaultValue": "anonymous",
+      "allowedValues": [
+        "basic",
+        "anonymous"
+      ]
+    },
+    "azureblob_1_privacySetting": {
+      "type": "string",
+      "metadata": {
+        "description": "Privacy Setting"
+      },
+      "defaultValue": "Private",
+      "allowedValues": [
+        "None",
+        "Private",
+        "Organizational",
+        "Public"
+      ]
     }
   },
   "variables": {},
@@ -49,13 +150,976 @@
       "properties": {
         "definition": {
           "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {
+            "Parse_JSON_HTTP_Request": {
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@triggerBody()?['ContentData']",
+                "schema": {
+                  "properties": {
+                    "IsAward": {
+                      "type": "boolean"
+                    },
+                    "OriginalFileName": {
+                      "type": "string"
+                    },
+                    "fileName": {
+                      "type": "string"
+                    },
+                    "srNo": {
+                      "type": "integer"
+                    },
+                    "tenantId": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "runAfter": {}
+            },
+            "Initialize_variable_RecordNbr": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "RecordNbr",
+                    "type": "integer"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Parse_JSON_HTTP_Request": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_IsAward": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "IsAward",
+                    "type": "boolean"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_RecordNbr": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_FileUploadTypeId": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "FileUploadTypeId",
+                    "type": "integer"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_IsAward": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_SuccessCount": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "SuccessCount",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_FileUploadTypeId": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_FailedCount": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "FailedCount",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_SuccessCount": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_UserId": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "UserId",
+                    "type": "string",
+                    "value": "app"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_FailedCount": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_Exceptions": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "Exceptions",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_UserId": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_ValidRecords": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "ValidRecords",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_Exceptions": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_InvalidRecords": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "InvalidRecords",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_ValidRecords": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_ParticipantIdAndExceptions": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "ParticipantIdAndExceptions",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_InvalidRecords": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_Password": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "Password",
+                    "type": "string",
+                    "value": "Nabo9869"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_CampaignProductConfigurationPostRequestArray": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_SubscriptionKeyName": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "SubscriptionKeyName",
+                    "type": "string",
+                    "value": "Ocp-Apim-Subscription-Key"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_Password": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_SubscriptionKey": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "SubscriptionKey",
+                    "type": "string",
+                    "value": "ab323d4779524090857b183ae6e4ebd8"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_SubscriptionKeyName": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_APIManagementURL": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "APIManagementURL",
+                    "type": "string",
+                    "value": "https://dev-core-apim-nxl.azure-api.net"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_SubscriptionKey": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_BlobContainerName": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "BlobContainerName",
+                    "type": "string",
+                    "value": "dev-userupload-nxl"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_APIManagementURL": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "HTTP_GET_Jwt_Token": {
+              "type": "Http",
+              "inputs": {
+                "method": "POST",
+                "uri": "@{variables('APIManagementURL')}/auth-service/api/v1/auth/login",
+                "headers": {
+                  "@variables('SubscriptionKeyName')": "@{variables('SubscriptionKey')}",
+                  "Content": "application/json"
+                },
+                "body": {
+                  "passWord": "@variables('Password')",
+                  "userId": "@variables('UserId')"
+                }
+              },
+              "runAfter": {
+                "Initialize_variable_BlobContainerName": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_JwtToken": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "JwtToken",
+                    "type": "string",
+                    "value": "@{body('HTTP_GET_Jwt_Token')}"
+                  }
+                ]
+              },
+              "runAfter": {
+                "HTTP_GET_Jwt_Token": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Set_variable_IsAward": {
+              "type": "SetVariable",
+              "inputs": {
+                "name": "IsAward",
+                "value": "@body('Parse_JSON_HTTP_Request')?['IsAward']"
+              },
+              "runAfter": {
+                "Initialize_variable_JwtToken": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Condition_check_and_set_FileUploadTypeId": {
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "not": {
+                      "equals": [
+                        "@variables('IsAward')",
+                        "@null"
+                      ]
+                    }
+                  },
+                  {
+                    "equals": [
+                      "@variables('IsAward')",
+                      "@true"
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "Set_variable_FileUploadTypeId_for_Add_Product": {
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "FileUploadTypeId",
+                    "value": 11
+                  },
+                  "runAfter": {}
+                }
+              },
+              "runAfter": {
+                "Set_variable_IsAward": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "Set_variable__FileUploadTypeId_for_Remove_Product": {
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "FileUploadTypeId",
+                      "value": 12
+                    },
+                    "runAfter": {}
+                  }
+                }
+              }
+            },
+            "HTTP_Get_Tenant_Details": {
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{variables('APIManagementURL')}/tenant-service/api/v1/tenants/@{body('Parse_JSON_HTTP_Request')?['tenantId']}/tenant",
+                "headers": {
+                  "@variables('SubscriptionKeyName')": "@variables('SubscriptionKey')"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "bearer @{variables('JwtToken')}"
+                }
+              },
+              "runAfter": {
+                "Condition_check_and_set_FileUploadTypeId": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Parse_JSON": {
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@body('HTTP_Get_Tenant_Details')",
+                "schema": {
+                  "properties": {
+                    "accountingCustomerId": {
+                      "type": "string"
+                    },
+                    "accountingProjectNumber": {
+                      "type": "string"
+                    },
+                    "contactEmail": {
+                      "type": "string"
+                    },
+                    "contactPhone": {
+                      "type": "string"
+                    },
+                    "countryCodes": {
+                      "type": "array"
+                    },
+                    "createdOn": {
+                      "type": "string"
+                    },
+                    "hasOpenRegistration": {
+                      "type": "boolean"
+                    },
+                    "isActive": {
+                      "type": "boolean"
+                    },
+                    "loginTypeId": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "parentTenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "pointsBillingType": {
+                      "type": "integer"
+                    },
+                    "requiresTaxpayerIdentification": {
+                      "type": "boolean"
+                    },
+                    "tenantId": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "runAfter": {
+                "HTTP_Get_Tenant_Details": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Get_blob_content_(V2)": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azureblob']['connectionId']"
+                  }
+                },
+                "method": "get",
+                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/files/@{encodeURIComponent(encodeURIComponent('/',variables('BlobContainerName'),'/',body('Parse_JSON_HTTP_Request')?['fileName']))}/content",
+                "queries": {
+                  "inferContentType": true
+                }
+              },
+              "runAfter": {
+                "Parse_JSON": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Parse_JSON_Get_File_blob_content": {
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@json(decodeBase64(body('Get_blob_content_(V2)')['$content']))",
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "productId": {
+                        "type": "string"
+                      },
+                      "campaignId": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "runAfter": {
+                "Get_blob_content_(V2)": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_BlobNewArray": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "BlobNewArray",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Parse_JSON_Get_File_blob_content": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "For_each_record_in_the_File_blob_content": {
+              "type": "Foreach",
+              "foreach": "@body('Parse_JSON_Get_File_blob_content')",
+              "actions": {
+                "Set_variable_Set_variable_Exceptions": {
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "Exceptions",
+                    "value": "@null"
+                  },
+                  "runAfter": {}
+                },
+                "Increment_variable_RecordNbr": {
+                  "type": "IncrementVariable",
+                  "inputs": {
+                    "name": "RecordNbr",
+                    "value": 1
+                  },
+                  "runAfter": {
+                    "Set_variable_Set_variable_Exceptions": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Condition_Check_ProductId": {
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "equals": [
+                          "@items('For_each_record_in_the_File_blob_content')?['productId']",
+                          ""
+                        ]
+                      },
+                      {
+                        "equals": [
+                          "@items('For_each_record_in_the_File_blob_content')?['productId']",
+                          ""
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Append_to_array_variable_ProductId_Required_Validation": {
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "ParticipantIdAndExceptions",
+                        "value": {
+                          "Exceptions": [
+                            " @{items('For_each_record_in_the_File_blob_content')?['productId']} ProductId is required."
+                          ],
+                          "RecordNumber": "@variables('RecordNbr')"
+                        }
+                      },
+                      "runAfter": {}
+                    },
+                    "Append_to_array_variable_ProductId_Exception": {
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "Exceptions",
+                        "value": 45
+                      },
+                      "runAfter": {
+                        "Append_to_array_variable_ProductId_Required_Validation": [
+                          "Succeeded"
+                        ]
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Increment_variable_RecordNbr": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Condition_Check_Exceptions": {
+                  "type": "If",
+                  "expression": {
+                    "and": [
+                      {
+                        "greater": [
+                          "@length(variables('Exceptions'))",
+                          0
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Set_variable_CampaignProductPostRequestObj": {
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "CampaignProductPostRequestObj",
+                        "value": "{\n  \"exceptions\": @{variables('Exceptions')},\n  \"ProductId\": @{items('For_each_record_in_the_File_blob_content')?['productId']}\n  \"isFailed\": true\n}"
+                      },
+                      "runAfter": {}
+                    },
+                    "Append_to_array_variable_CampiagnProductPostRequestObj": {
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "CampaignProductPostRequestArray",
+                        "value": "@variables('CampaignProductPostRequestObj')"
+                      },
+                      "runAfter": {
+                        "Set_variable_CampaignProductPostRequestObj": [
+                          "Succeeded"
+                        ]
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Condition_Check_ProductId": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Append_to_array_variable": {
+                        "type": "AppendToArrayVariable",
+                        "inputs": {
+                          "name": "ValidRecords",
+                          "value": "@items('For_each_record_in_the_File_blob_content')?['productId']"
+                        },
+                        "runAfter": {}
+                      }
+                    }
+                  }
+                },
+                "Set_variable_CampaignProductConfigurationPostRequest": {
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CampaignProductConfigurationPostRequest",
+                    "value": "{\n\"CampaignId\": @{items('For_each_record_in_the_File_blob_content')?['campaignId']}\n\"ProductId\": @{items('For_each_record_in_the_File_blob_content')?['productId']}\n\"IsActive\":@{variables('IsAward')}\n}"
+                  },
+                  "runAfter": {
+                    "Condition_Check_Exceptions": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Append_to_array_variable_CampaignProductPostRequestArray": {
+                  "type": "AppendToArrayVariable",
+                  "inputs": {
+                    "name": "CampaignProductConfigurationPostRequestArray",
+                    "value": "@variables('CampaignProductConfigurationPostRequest')"
+                  },
+                  "runAfter": {
+                    "Set_variable_CampaignProductConfigurationPostRequest": [
+                      "Succeeded"
+                    ]
+                  }
+                }
+              },
+              "runAfter": {
+                "Initialize_variable_BlobNewArray": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_CampaignProductPostRequestObj": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CampaignProductPostRequestObj",
+                    "type": "object"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_ParticipantIdAndExceptions": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_CampaignProductPostRequestArray": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CampaignProductPostRequestArray",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_CampaignProductPostRequestObj": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_CampaignProductConfigurationPostRequest": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CampaignProductConfigurationPostRequest",
+                    "type": "object"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_CampaignProductPostRequestArray": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable_CampaignProductConfigurationPostRequestArray": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CampaignProductConfigurationPostRequestArray",
+                    "type": "array"
+                  }
+                ]
+              },
+              "runAfter": {
+                "Initialize_variable_CampaignProductConfigurationPostRequest": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Filter_array": {
+              "type": "Query",
+              "inputs": {
+                "from": "@variables('CampaignProductConfigurationPostRequestArray')",
+                "where": "@contains(variables('ValidRecords'), 'items()?[''ProductId'']')"
+              },
+              "runAfter": {
+                "For_each_record_in_the_File_blob_content": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "For_each_Valid_Records": {
+              "type": "Foreach",
+              "foreach": "@body('Filter_array')",
+              "actions": {
+                "HTTP_Add_Product_data": {
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "@{variables('APIManagementURL')}/campaign-service/v1/tenants/@{body('Parse_JSON')?['tenantId']}/campaigns/add-products-to-campaign",
+                    "headers": {
+                      "@variables('SubscriptionKeyName')": "@variables('SubscriptionKey')"
+                    },
+                    "body": "[\n  {\n    \"campaignId\": @{items('For_each_Valid_Records')?['CampaignId']},\n    \"productId\": ,@{items('For_each_Valid_Records')?['productId']},\n    \"isActive\": @{items('For_each_Valid_Records')?['isActive']}\n  }\n]",
+                    "authentication": {
+                      "type": "Raw",
+                      "value": "bearer @{variables('JwtToken')}"
+                    }
+                  },
+                  "runAfter": {}
+                },
+                "Append_to_array_variable_SuccessCount": {
+                  "type": "AppendToArrayVariable",
+                  "inputs": {
+                    "name": "SuccessCount",
+                    "value": 1
+                  },
+                  "runAfter": {
+                    "HTTP_Add_Product_data": [
+                      "Succeeded"
+                    ]
+                  }
+                }
+              },
+              "runAfter": {
+                "Filter_array": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Condition_Check_Any_Invalid_Record_Exists": {
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "greater": [
+                      "@length(variables('FailedCount'))",
+                      0
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "Create_CSV_table": {
+                  "type": "Table",
+                  "inputs": {
+                    "from": "@variables('ParticipantIdAndExceptions')",
+                    "format": "CSV"
+                  },
+                  "runAfter": {}
+                },
+                "Send_email_(V4)__for_Partial_upload": {
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['sendgrid']['connectionId']"
+                      }
+                    },
+                    "method": "post",
+                    "body": {
+                      "from": "@body('Parse_JSON')?['contactEmail']",
+                      "to": "@body('Parse_JSON')?['contactEmail']",
+                      "subject": "@{body('Parse_JSON')?['name']} - FTP File Processed - @{body('Parse_JSON_HTTP_Request')?['OriginalFileName']}",
+                      "text": "<p>The notification is to inform you that the file @{body('Parse_JSON_HTTP_Request')?['OriginalFileName']} was<br>\npartially uploaded via FTP.<br>\n<br>\n@{length(variables('SuccessCount'))} record(s) were successfully uploaded.<br>\n<br>\n@{length(variables('FailedCount'))} record(s) failed to upload<br>\n<br>\nFile contained a total of records @{add(length(variables('FailedCount')),length(variables('SuccessCount')))}<br>\n<br>\nThanks,<br>\nAdmin@ NXL</p>",
+                      "ishtml": true
+                    },
+                    "path": "/v4/mail/send"
+                  },
+                  "runAfter": {
+                    "Create_CSV_table": [
+                      "Succeeded"
+                    ]
+                  }
+                }
+              },
+              "runAfter": {
+                "For_each_Valid_Records": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "HTTP_Send_Summary_Email": {
+                    "type": "Http",
+                    "inputs": {
+                      "method": "POST",
+                      "uri": "@{variables('APIManagementURL')}/email-service/api/v1/tenants/@{body('Parse_JSON_HTTP_Request')?['tenantId']}/email/send-email",
+                      "headers": {
+                        "@variables('SubscriptionKeyName')": "@variables('SubscriptionKey')"
+                      },
+                      "body": {
+                        "body": "The bulk campaign product file was successfully uploaded via FTP.    File Name: @{body('Parse_JSON_HTTP_Request')?['OriginalFileName']}. ",
+                        "email": "@body('Parse_JSON')?['contactEmail']",
+                        "fromEmail": "@body('Parse_JSON')?['contactEmail']",
+                        "subject": "Campaign Product Upload Notification"
+                      },
+                      "authentication": {
+                        "type": "Raw",
+                        "value": "bearer @{variables('JwtToken')}"
+                      }
+                    },
+                    "runAfter": {}
+                  }
+                }
+              }
+            }
+          },
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "When_a_message_is_received_in_a_queue_(auto-complete)": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                  }
+                },
+                "method": "get",
+                "path": "/@{encodeURIComponent(encodeURIComponent('campaignproductuploadqueue'))}/messages/head",
+                "queries": {
+                  "queueType": "Main"
+                }
+              },
+              "recurrence": {
+                "frequency": "Minute",
+                "interval": 1
+              }
+            }
+          },
           "contentVersion": "1.0.0.0",
-          "actions": {},
-          "outputs": {},
-          "parameters": {},
-          "triggers": {}
+          "outputs": {}
         },
-        "parameters": {}
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azureblob": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'azureblob')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azureblob_1_Connection_Name'))]",
+                "connectionName": "[parameters('azureblob_1_Connection_Name')]"
+              },
+              "sendgrid": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'sendgrid')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('sendgrid_1_Connection_Name'))]",
+                "connectionName": "[parameters('sendgrid_1_Connection_Name')]"
+              },
+              "servicebus_1": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'servicebus')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('servicebus_1_Connection_Name'))]",
+                "connectionName": "[parameters('servicebus_1_Connection_Name')]"
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('azureblob_1_Connection_Name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('sendgrid_1_Connection_Name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('servicebus_1_Connection_Name'))]"
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('servicebus_1_Connection_Name')]",
+      "location": "[parameters('logicAppLocation')]",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'servicebus')]"
+        },
+        "displayName": "[parameters('servicebus_1_Connection_DisplayName')]",
+        "parameterValues": {
+          "connectionString": "[parameters('servicebus_1_connectionString')]"
+        }
+      }
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('sendgrid_1_Connection_Name')]",
+      "location": "[parameters('logicAppLocation')]",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'sendgrid')]"
+        },
+        "displayName": "[parameters('sendgrid_1_Connection_DisplayName')]",
+        "parameterValues": {
+          "apiKey": "[parameters('sendgrid_1_apiKey')]"
+        }
+      }
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('azureblob_1_Connection_Name')]",
+      "location": "[parameters('logicAppLocation')]",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'azureblob')]"
+        },
+        "displayName": "[parameters('azureblob_1_Connection_DisplayName')]",
+        "parameterValues": {
+          "accountName": "[parameters('azureblob_1_accountName')]",
+          "accessKey": "[parameters('azureblob_1_accessKey')]",
+          "authType": "[parameters('azureblob_1_authType')]",
+          "privacySetting": "[parameters('azureblob_1_privacySetting')]"
+        }
       }
     }
   ],
